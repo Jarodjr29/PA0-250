@@ -20,10 +20,13 @@ package cse250.pa0.objects
 import java.io.File
 import java.io.FileWriter
 import java.io.BufferedWriter
+
 import scala.util.control.Breaks._
 import scala.io.Source
 import cse250.assignments.objects.TaxEntry
 
+import scala.collection.mutable
+import scala.collection.mutable.Map
 import scala.collection.mutable.ListBuffer
 
 object TaxEntryProcessor {
@@ -73,11 +76,114 @@ object TaxEntryProcessor {
   }
 
   def computeMostExpensiveEntry(filename: String): TaxEntry = {
-    new TaxEntry
+    var most_expensive = new TaxEntry
+    val inputFile = scala.io.Source.fromFile(filename)
+    val lines = inputFile.getLines()
+    var count = 0
+    var zip_index = 0
+    var s = ListBuffer[String]()
+    var clean_data = ListBuffer[Array[String]]()
+    val remove_indexes = Array(1,2,8,9,10,11,12,13,14,21,22,23,25,32,33,34,40,41,42)
+    for(line <- lines) {
+      if (count == 0) {
+        count += 1
+        val ln = line.split(",")
+        var cleaned_line = ListBuffer[String]()
+        for (x <- 1 to ln.length) {
+          if (remove_indexes.contains(x) != true) {
+            cleaned_line += ln(x - 1)
+          }
+        }
+        zip_index = cleaned_line.indexOf("ZIP CODE (5-DIGIT)")
+        clean_data += cleaned_line.toArray
+      } else {
+        count += 1
+        var cleaned_line = parseLine(line, remove_indexes)
+        if(cleaned_line(zip_index) == ""){
+          null
+        } else{clean_data += cleaned_line.toArray}
+      }
+    }
+    count = 0
+    val val_index = clean_data.head.indexOf("TOTAL VALUE")
+    var most_expensive_val = 0
+    var most_expensive_ind = 0
+    var header = ""
+    for(data <- clean_data){
+      if(count == 0){
+         count += 1
+        header = data.mkString(", ")
+      } else{
+        count += 1
+        if(data(val_index) != "") {
+          if (data(val_index).toInt > most_expensive_val) {
+            most_expensive_val = data(val_index).toInt
+            most_expensive_ind = clean_data.indexOf(data)
+            most_expensive.infoMap.empty
+            most_expensive.infoMap += (header -> data.mkString(", "))
+          }
+        }
+      }
+    }
+    most_expensive
   }
 
   def computeOldestEntry(filename: String): TaxEntry = {
-    new TaxEntry
+    var oldest = new TaxEntry
+    val inputFile = scala.io.Source.fromFile(filename)
+    val lines = inputFile.getLines()
+    var count = 0
+    var zip_index = 0
+    var s = ListBuffer[String]()
+    var clean_data = ListBuffer[Array[String]]()
+    val remove_indexes = Array(1,2,8,9,10,11,12,13,14,21,22,23,25,32,33,34,40,41,42)
+    for(line <- lines) {
+      if (count == 0) {
+        count += 1
+        val ln = line.split(",")
+        var cleaned_line = ListBuffer[String]()
+        for (x <- 1 to ln.length) {
+          if (remove_indexes.contains(x) != true) {
+            cleaned_line += ln(x - 1)
+          }
+        }
+        zip_index = cleaned_line.indexOf("ZIP CODE (5-DIGIT)")
+        clean_data += cleaned_line.toArray
+      } else {
+        count += 1
+        var cleaned_line = parseLine(line, remove_indexes)
+        if(cleaned_line(zip_index) == ""){
+          null
+        } else{clean_data += cleaned_line.toArray}
+      }
+    }
+    count = 0
+    val val_index = clean_data.head.indexOf("YEAR BUILT")
+    var oldest_val = 0
+    var oldest_ind = 0
+    var header = ""
+    for(data <- clean_data){
+      if(count == 0){
+        count += 1
+        header = data.mkString(", ")
+      } else if(oldest_val == 0 &&  data(val_index) != ""){
+          oldest_val = data(val_index).toInt
+          oldest_ind = clean_data.indexOf(data)
+          oldest.infoMap += (header -> data.mkString(", "))
+          count += 1
+        }else {
+        count += 1
+        if (data(val_index) != "" && data(val_index).toInt > 1700) {
+          if (data(val_index).toInt < oldest_val) {
+            oldest_val = data(val_index).toInt
+            oldest_ind = clean_data.indexOf(data)
+            oldest.infoMap.empty
+            oldest.infoMap += (header -> data.mkString(", "))
+          }
+        }
+      }
+    }
+    oldest
   }
 
   def parseLine(line: String, remove_indexes: Array[Int]): ListBuffer[String] = {
@@ -87,10 +193,10 @@ object TaxEntryProcessor {
     for(s <- ln1){
       if(s.contains("@")){
         if(s.contains("(")){
-          ln2 += s.concat(", ").concat(ln1.last).replace("@", "")
+          ln2 += """"""".concat(s.concat(", ").concat(ln1.last).replace("@", "")).concat(""""""")
         } else{
           if(ln1(ln1.indexOf(s) - 1).contains('@')){
-            ln2 += ln1(ln1.indexOf(s) - 1).concat(",").concat(s).replaceAll("@", "")
+            ln2 += """"""".concat(ln1(ln1.indexOf(s) - 1).concat(",").concat(s).replaceAll("@", "")).concat(""""""")
           }
         }
       } else if(s.contains(")")){
