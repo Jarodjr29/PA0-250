@@ -7,6 +7,6 @@ class TaxEntryProcessorTests extends FlatSpec {
   behavior of "TaxEntryProcessor.sanitizeData"
 
   "sanitizeData" should "return a cleaned csv file" in {
-    assert(TaxEntryProcessor.sanitizeData("data/2017-2018_Assessment_Roll.csv")(432).length == 27)
+    assert(TaxEntryProcessor.sanitizeData("data/2017-2018_Assessment_Roll.csv")(27).length == 27)
   }
 }

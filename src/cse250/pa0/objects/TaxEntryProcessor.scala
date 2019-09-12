@@ -34,13 +34,29 @@ object TaxEntryProcessor {
     //       Ensure you do not close the file prior to finishing the file usage.
     val lines = inputFile.getLines()
     var count = 0
+    var zip_index = 0
     var s = ListBuffer[String]()
     var clean_data = ListBuffer[Array[String]]()
     val remove_indexes = Array(1,2,8,9,10,11,12,13,14,21,22,23,25,32,33,34,40,41,42)
-    for(line <- lines){
-      count += 1
-      var cleaned_line = parseLine(line, remove_indexes)
-      clean_data += cleaned_line.toArray
+    for(line <- lines) {
+      if (count == 0) {
+        count += 1
+        val ln = line.split(",")
+        var cleaned_line = ListBuffer[String]()
+        for (x <- 1 to ln.length) {
+          if (remove_indexes.contains(x) != true) {
+            cleaned_line += ln(x - 1)
+          }
+        }
+        zip_index = cleaned_line.indexOf("ZIP CODE (5-DIGIT)")
+        clean_data += cleaned_line.toArray
+      } else {
+        count += 1
+        var cleaned_line = parseLine(line, remove_indexes)
+        if(cleaned_line(zip_index) == ""){
+          null
+        } else{clean_data += cleaned_line.toArray}
+      }
     }
     val outputFile = new BufferedWriter(new FileWriter( new File(filename + "-updated")))
     for(data <- clean_data){
